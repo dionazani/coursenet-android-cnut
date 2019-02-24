@@ -31,7 +31,7 @@ public class ListActivity extends Activity {
 
         OkHttpClient client = new OkHttpClient();
 
-        String endpoint = IPSetting.URL + " /contact";
+        String endpoint = IPSetting.URL + "/contact";
         Request request = new Request.Builder()
                 .get()
                 .url(endpoint)
@@ -73,7 +73,10 @@ public class ListActivity extends Activity {
                             String hasil = response.body().string();
                             JSONArray data = new JSONArray(hasil);
 
-                            ArrayList<ContactModel> contactList = new ArrayList<>();
+                            ContactAdapter adapter = new ContactAdapter();
+                            adapter.contactList = new ArrayList<>();
+
+                            Log.e("Jumlah", String.valueOf(data.length()));
 
                             for (int i=0; i<data.length(); i++) {
                                 ContactModel model = new ContactModel();
@@ -88,12 +91,10 @@ public class ListActivity extends Activity {
                                 model.setAlamat(alamat);
                                 model.setEmail(email);
 
-                                contactList.add(model);
+                                adapter.contactList.add(model);
                             }
 
-                            ContactAdapter adapter = new ContactAdapter(contactList);
                             recyclerView.setAdapter(adapter);
-
                             pd.dismiss();
 
                         } catch (Exception e) {

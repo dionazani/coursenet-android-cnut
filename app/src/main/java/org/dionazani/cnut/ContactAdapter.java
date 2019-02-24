@@ -11,10 +11,13 @@ import java.util.ArrayList;
 
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder>{
 
-    private ArrayList<ContactModel> contactList;
+    public ArrayList<ContactModel> contactList;
+
+    public ContactAdapter() {
+    }
 
     public ContactAdapter(ArrayList<ContactModel> list) {
-        this.contactList = list;
+       this.contactList = list;
     }
 
     @NonNull

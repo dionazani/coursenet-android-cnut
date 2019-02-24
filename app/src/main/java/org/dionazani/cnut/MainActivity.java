@@ -100,12 +100,16 @@ public class MainActivity extends Activity {
                         // Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_LONG).show();
                         try {
                             JSONObject json = new JSONObject(hasil);
-                            json.get("message");
+                            json.get("result");
 
-                            Toast.makeText(getApplicationContext(), json.get("message").toString(), Toast.LENGTH_LONG).show();
-
-                            //Intent i = new Intent(getApplicationContext(), ListActivity.class);
-                            //startActivity(i);
+                            String result = "false";
+                            if (json.get("result").toString().equalsIgnoreCase(result)) {
+                                Toast.makeText(getApplicationContext(), json.get("message").toString(), Toast.LENGTH_LONG).show();
+                            }
+                            else {
+                                Intent i = new Intent(getApplicationContext(), ListActivity.class);
+                                startActivity(i);
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
