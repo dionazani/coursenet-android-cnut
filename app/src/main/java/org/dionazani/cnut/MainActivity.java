@@ -37,17 +37,34 @@ public class MainActivity extends Activity {
     }
 
     public void doAddNew(View view) {
-        EditText kodeEt =(EditText) findViewById(R.id.kode_text);
-        EditText namaEt = (EditText) findViewById(R.id.nama_text);
+        EditText nama =(EditText) findViewById(R.id.nama_text);
+        EditText alamat = (EditText) findViewById(R.id.alamat_text);
+        EditText email = (EditText) findViewById(R.id.email_text);
+
+        if (nama.length() == 0) {
+            nama.setError("Nama tidak boleh kosong");
+            return;
+        }
+
+        if (alamat.length() == 0) {
+            alamat.setError("Alamat tidak boleh kosong");
+            return;
+        }
+
+        if (email.length() == 0) {
+            email.setError("Email tidak boleh kosong");
+            return;
+        }
 
         OkHttpClient client = new OkHttpClient();
 
         RequestBody requestBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
-                .addFormDataPart("codeMahasiswa", kodeEt.getText().toString())
-                .addFormDataPart("namaMahasiswa", namaEt.getText().toString())
+                .addFormDataPart("nama", nama.getText().toString())
+                .addFormDataPart("alamat", alamat.getText().toString())
+                .addFormDataPart("email", email.getText().toString())
                 .build();
 
-        String endpoint = "http://192.168.1.8:8081/coursenet-android-cnut-restapi/api/mahasiswa";
+        String endpoint = IPSetting.URL + "/contact";
         Request request = new Request.Builder()
                 .post(requestBody)
                 .url(endpoint)
@@ -80,7 +97,18 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         pd.dismiss();
-                        Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_LONG).show();
+                        // Toast.makeText(getApplicationContext(), "Success", Toast.LENGTH_LONG).show();
+                        try {
+                            JSONObject json = new JSONObject(hasil);
+                            json.get("message");
+
+                            Toast.makeText(getApplicationContext(), json.get("message").toString(), Toast.LENGTH_LONG).show();
+
+                            //Intent i = new Intent(getApplicationContext(), ListActivity.class);
+                            //startActivity(i);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 });
             }

@@ -1,9 +1,11 @@
 package org.dionazani.cnut;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,81 +23,86 @@ import okhttp3.Response;
 public class ListActivity extends Activity {
 
     private RecyclerView recyclerView;
-    private MahasiswaAdapter adapter;
-    private ArrayList<MahasiswaModel> mahasiswaList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        this.mahasiswaList = new ArrayList<>();
-        getMahasiswa();
-
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-
-        adapter = new MahasiswaAdapter(mahasiswaList);
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(ListActivity.this);
-
-        recyclerView.setLayoutManager(layoutManager);
-
-        recyclerView.setAdapter(adapter);
-    }
-
-    private void addMahasiswaToList(MahasiswaModel model) {
-        this.mahasiswaList.add(model);
-    }
-
-    private void getMahasiswa() {
-        this.mahasiswaList = new ArrayList<>();
-
         OkHttpClient client = new OkHttpClient();
 
-        String endpoint = "http://192.168.1.8:8081/coursenet-android-cnut-restapi/api/mahasiswa";
+        String endpoint = IPSetting.URL + " /contact";
         Request request = new Request.Builder()
                 .get()
                 .url(endpoint)
                 .build();
 
+        final ProgressDialog pd = new ProgressDialog(ListActivity.this);
+        pd.setTitle("Loading");
+        pd.setCancelable( false );
+        pd.show();
+
+        LinearLayoutManager manager = new LinearLayoutManager(ListActivity.this);
+        manager.setOrientation(LinearLayoutManager.VERTICAL);
+
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(manager);
+        recyclerView.setHasFixedSize(true);
+
         client.newCall(request).enqueue(new Callback() {
 
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(Call call, final IOException e) {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(getApplicationContext(), "Gagal", Toast.LENGTH_LONG).show();
+                        pd.dismiss();
+                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
             }
 
             @Override
             public void onResponse(Call call, final Response response) {
-                try {
-                    String hasil = response.body().string();
-                    JSONArray data = new JSONArray(hasil);
 
-                    for (int i=0; i<data.length(); i++) {
-                        MahasiswaModel model = new MahasiswaModel();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
 
-                        int id = Integer.parseInt(data.getJSONObject(i).get("id").toString());
-                        String kodeMahasiswa = String.valueOf(data.getJSONObject(i).get("code_mhs"));
-                        String namaMahasiswa = String.valueOf(data.getJSONObject(i).get("nama_mhs"));
-                        String jurusan = String.valueOf(data.getJSONObject(i).get("nama_jur"));
+                        try {
+                            String hasil = response.body().string();
+                            JSONArray data = new JSONArray(hasil);
 
-                        model.setId(id);
-                        model.setKodeMahasiswa(kodeMahasiswa);
-                        model.setNamaMahasiswa(namaMahasiswa);
-                        model.setJurusan(jurusan);
+                            ArrayList<ContactModel> contactList = new ArrayList<>();
 
-                        addMahasiswaToList(model);
+                            for (int i=0; i<data.length(); i++) {
+                                ContactModel model = new ContactModel();
+
+                                int id = Integer.parseInt(data.getJSONObject(i).get("id").toString());
+                                String nama = String.valueOf(data.getJSONObject(i).get("nama"));
+                                String alamat = String.valueOf(data.getJSONObject(i).get("alamat"));
+                                String email = String.valueOf(data.getJSONObject(i).get("email"));
+
+                                model.setId(id);
+                                model.setNama(nama);
+                                model.setAlamat(alamat);
+                                model.setEmail(email);
+
+                                contactList.add(model);
+                            }
+
+                            ContactAdapter adapter = new ContactAdapter(contactList);
+                            recyclerView.setAdapter(adapter);
+
+                            pd.dismiss();
+
+                        } catch (Exception e) {
+                            pd.dismiss();
+                            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                        }
                     }
-                } catch (Exception e) {
-
-                }
+                });
             }
         });
-
     }
 }
